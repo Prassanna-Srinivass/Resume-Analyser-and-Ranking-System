@@ -115,3 +115,19 @@ def test_real_provider_adapter(monkeypatch,case,expected):
     else:
         answer,rendered,demo=asyncio.run(llm.generate(DATA,'test-model','Context'))
         assert answer=='Answer' and not demo and 'Context' in rendered
+
+def test_gemini_defaults_and_request(monkeypatch):
+    for name in ('LLM_MODEL', 'LLM_MODELS', 'LLM_BASE_URL'):
+        monkeypatch.setenv(name, '')
+    monkeypatch.setenv('LLM_API_KEY', 'gemini-test-key')
+    assert llm.models() == ['demo-local', 'gemini-3.5-flash-lite']
+    original = httpx.AsyncClient
+    def handler(request):
+        import json
+        assert str(request.url) == 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
+        assert request.headers['authorization'] == 'Bearer gemini-test-key'
+        assert json.loads(request.content)['model'] == 'gemini-3.5-flash-lite'
+        return httpx.Response(200, json={'choices': [{'message': {'content': 'Gemini answer'}}]})
+    monkeypatch.setattr(llm.httpx, 'AsyncClient', lambda **kwargs: original(transport=httpx.MockTransport(handler), **kwargs))
+    answer, _, demo = asyncio.run(llm.generate(DATA, 'gemini-3.5-flash-lite', ''))
+    assert answer == 'Gemini answer' and not demo

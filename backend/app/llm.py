@@ -1,8 +1,11 @@
-"""An explicit offline simulator and a configurable Chat Completions adapter."""
+"""Offline simulator and Gemini OpenAI-compatible Chat Completions adapter."""
 import json
 import os
 import httpx
 from fastapi import HTTPException
+
+DEFAULT_MODEL = 'gemini-3.5-flash-lite'
+DEFAULT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai'
 
 TECHNIQUES = {
     'zero-shot': 'Complete the task directly and clearly.',
@@ -13,7 +16,7 @@ TECHNIQUES = {
 }
 
 def models():
-    configured = [m.strip() for m in (os.getenv('LLM_MODELS') or os.getenv('LLM_MODEL', '')).split(',') if m.strip()]
+    configured = [m.strip() for m in (os.getenv('LLM_MODELS') or os.getenv('LLM_MODEL') or DEFAULT_MODEL).split(',') if m.strip()]
     if not os.getenv('LLM_API_KEY'):
         configured = []
     return ['demo-local'] + [m for m in configured if m != 'demo-local']
@@ -35,7 +38,7 @@ async def generate(prompt, model_name, input_text):
         if prompt['technique'] == 'structured-output':
             answer = json.dumps({'answer': answer, 'key_points': ['Offline simulation', 'No model inference']}, indent=2)
         return answer, rendered, True
-    base = os.getenv('LLM_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
+    base = (os.getenv('LLM_BASE_URL') or DEFAULT_BASE_URL).strip().rstrip('/')
     try:
         async with httpx.AsyncClient(timeout=60, follow_redirects=False) as client:
             response = await client.post(base + '/chat/completions', headers={
