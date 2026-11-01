@@ -82,10 +82,10 @@ Open **<http://127.0.0.1:5173>**. Vite forwards `/api` to FastAPI on port 8000. 
 Edit **`backend/.env`**, never a frontend file:
 
 ```dotenv
-LLM_API_KEY=your_provider_key
-LLM_MODEL=your_supported_model_id
+LLM_API_KEY=your_google_ai_studio_api_key
+LLM_MODEL=gemini-3.5-flash-lite
 LLM_MODELS=
-LLM_BASE_URL=https://api.openai.com/v1
+LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
 ```
 
 For another compatible provider, set its HTTPS base URL ending in its API version prefix. The application appends `/chat/completions`. Verify the provider supports text `messages` and returns `choices[0].message.content`.
@@ -146,9 +146,9 @@ This version follows the brief's **single-user** scope: it has no accounts or ac
 | --- | --- | --- |
 | `DATABASE_PATH` | `backend/data/playground.db` | SQLite file; an absolute persistent path is recommended when hosting |
 | `LLM_API_KEY` | empty | Server-only provider credential |
-| `LLM_MODEL` | empty | A supported provider model ID |
+| `LLM_MODEL` | `gemini-3.5-flash-lite` | A supported provider model ID |
 | `LLM_MODELS` | empty | Optional comma-separated allowlist overriding `LLM_MODEL` |
-| `LLM_BASE_URL` | `https://api.openai.com/v1` | Trusted provider base URL |
+| `LLM_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta/openai` | Trusted provider base URL |
 | `CORS_ORIGINS` | local Vite origins | Comma-separated browser origins |
 
 Keep `.env`, databases, virtual environments and `node_modules` out of Git. To back up all application data, stop FastAPI and copy the database file. JSON export contains runs and feedback, not templates or a restore-ready full backup. A fresh database starts empty; curated templates are built into the UI.
